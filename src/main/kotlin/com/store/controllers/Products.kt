@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter
 class ProductsController {
     private val products = mutableMapOf<Int, Product>()
 
+    // this logic can be moved to service incase we are using DB
+    // then service can call repo layer to fetch this data
     init {
         // Populate initial data
         products[1] = Product(id = 1, name = "XYZ Phone", type = ProductType.gadget, inventory = 2, cost = 10)
