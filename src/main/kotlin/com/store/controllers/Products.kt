@@ -12,18 +12,19 @@ import java.time.format.DateTimeFormatter
 class ProductsController {
     private val products = mutableMapOf<Int, Product>()
 
+    init {
+        // Populate initial data
+        products[1] = Product(id = 1, name = "XYZ Phone", type = ProductType.gadget, inventory = 2)
+        products[2] = Product(id = 2, name = "ABC Book", type = ProductType.book, inventory = 10)
+        products[3] = Product(id = 3, name = "DEF Food", type = ProductType.food, inventory = 5)
+        products[4] = Product(id = 4, name = "GHI Other", type = ProductType.other, inventory = 1)
+    }
+
     @GetMapping
     fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<Any> {
         return try {
-            if (type == null) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    ErrorResponseBody(
-                        timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                        status = HttpStatus.BAD_REQUEST.value(),
-                        error = "Missing product type",
-                        path = "/products"
-                    )
-                )
+            if (type == null || type !is String) {
+                ResponseEntity.ok(emptyList<Any>())
             } else {
                 val productType = ProductType.valueOf(type)
                 val filteredProducts = products.values.filter { it.type == productType }
@@ -43,7 +44,9 @@ class ProductsController {
 
     @PostMapping
     fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
-        if (productDetails.name.isBlank() || productDetails.inventory <= 0) {
+        if (productDetails.inventory <= 0 ||
+            !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
+        ) {
             val errorResponse = ErrorResponseBody(
                 timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status = HttpStatus.BAD_REQUEST.value(),
