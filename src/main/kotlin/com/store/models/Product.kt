@@ -12,6 +12,7 @@ data class ProductDetails @JsonCreator constructor(
     @JsonProperty("name") val name: String,
     @JsonProperty("type") val type: String,
     @JsonProperty("inventory") val inventory: Int?,
+    @JsonProperty("cost") val cost: Int?,
 )
 
 data class Product @JsonCreator constructor(
@@ -19,6 +20,7 @@ data class Product @JsonCreator constructor(
     @JsonProperty("name") val name: String,
     @JsonProperty("type") val type: ProductType,
     @JsonProperty("inventory") val inventory: Int,
+    @JsonProperty("cost") val cost: Int,
 )
 
 data class ProductId @JsonCreator constructor(

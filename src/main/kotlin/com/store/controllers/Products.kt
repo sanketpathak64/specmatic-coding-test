@@ -14,10 +14,10 @@ class ProductsController {
 
     init {
         // Populate initial data
-        products[1] = Product(id = 1, name = "XYZ Phone", type = ProductType.gadget, inventory = 2)
-        products[2] = Product(id = 2, name = "ABC Book", type = ProductType.book, inventory = 10)
-        products[3] = Product(id = 3, name = "DEF Food", type = ProductType.food, inventory = 5)
-        products[4] = Product(id = 4, name = "GHI Other", type = ProductType.other, inventory = 1)
+        products[1] = Product(id = 1, name = "XYZ Phone", type = ProductType.gadget, inventory = 2, cost = 10)
+        products[2] = Product(id = 2, name = "ABC Book", type = ProductType.book, inventory = 10, cost = 10)
+        products[3] = Product(id = 3, name = "DEF Food", type = ProductType.food, inventory = 5, cost = 10)
+        products[4] = Product(id = 4, name = "GHI Other", type = ProductType.other, inventory = 1, cost = 10)
     }
 
     @GetMapping
@@ -44,7 +44,7 @@ class ProductsController {
 
     @PostMapping
     fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
-        if (productDetails.inventory == null || productDetails.inventory !is Int ||
+        if (productDetails.inventory == null || productDetails.cost == null ||
             !isValidString(productDetails.name) ||
             productDetails.type == null ||
             !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
@@ -65,7 +65,8 @@ class ProductsController {
             id = newId,
             name = productDetails.name,
             type = ProductType.valueOf(productDetails.type),
-            inventory = productDetails.inventory
+            inventory = productDetails.inventory,
+            cost = productDetails.cost
         )
         products[newId] = newProduct
 
