@@ -23,7 +23,7 @@ class ProductsController {
     @GetMapping
     fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<Any> {
         return try {
-            if (type == null || type !is String) {
+            if (type == null) {
                 ResponseEntity.ok(emptyList<Any>())
             } else {
                 val productType = ProductType.valueOf(type)
@@ -31,49 +31,49 @@ class ProductsController {
                 ResponseEntity.ok(filteredProducts)
             }
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                ErrorResponseBody(
-                    timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    status = HttpStatus.BAD_REQUEST.value(),
-                    error = "Invalid product type",
-                    path = "/products"
-                )
-            )
+            val error = "Invalid product type";
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
         }
     }
 
     @PostMapping
     fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
-        if (productDetails.inventory == null || productDetails.cost == null ||
-            !isValidString(productDetails.name) ||
-            productDetails.type == null ||
-            !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
-        ) {
-            val errorMessage = "Invalid product details"
-
-            val errorResponse = ErrorResponseBody(
-                timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                status = HttpStatus.BAD_REQUEST.value(),
-                error = errorMessage,
-                path = "/products"
-            )
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+        if (validateProduct(productDetails)) {
+            val error = "Invalid product details";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
         }
 
         val newId = products.keys.max() + 1
-        val newProduct = Product(
-            id = newId,
-            name = productDetails.name,
-            type = ProductType.valueOf(productDetails.type),
-            inventory = productDetails.inventory,
-            cost = productDetails.cost
-        )
-        products[newId] = newProduct
-
+        products[newId] = newProduct(newId, productDetails)
         return ResponseEntity.status(HttpStatus.CREATED).body(ProductId(newId))
     }
 
+    private fun newProduct(newId: Int, productDetails: ProductDetails): Product {
+        return Product(
+            id = newId,
+            name = productDetails.name,
+            type = ProductType.valueOf(productDetails.type),
+            inventory = productDetails.inventory!!,
+            cost = productDetails.cost!!
+        )
+    }
+
+    private fun returnBadRequest(error: String) = ErrorResponseBody(
+        timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        status = HttpStatus.BAD_REQUEST.value(),
+        error = error,
+        path = "/products"
+    )
+
+    private fun validateProduct(productDetails: ProductDetails) =
+        productDetails.inventory == null || productDetails.cost == null ||
+                !isValidString(productDetails.name) ||
+                productDetails.type == null ||
+                !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
+
     private fun isValidString(value: String?): Boolean {
-        return value != null && value.matches(Regex("^[a-zA-Z\\s]+$")) && value !in listOf("true", "false")
+        return value != null &&
+                value !in listOf("true", "false") &&
+                value.matches(Regex("^[a-zA-Z\\s]+$"))
     }
 }
