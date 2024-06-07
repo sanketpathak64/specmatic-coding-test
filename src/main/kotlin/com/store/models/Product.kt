@@ -10,8 +10,8 @@ enum class ProductType {
 
 data class ProductDetails @JsonCreator constructor(
     @JsonProperty("name") val name: String,
-    @JsonProperty("type") val type: ProductType,
-    @JsonProperty("inventory") val inventory: Int,
+    @JsonProperty("type") val type: String,
+    @JsonProperty("inventory") val inventory: Int?,
 )
 
 data class Product @JsonCreator constructor(

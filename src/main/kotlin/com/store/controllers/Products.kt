@@ -44,27 +44,35 @@ class ProductsController {
 
     @PostMapping
     fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
-        if (productDetails.inventory <= 0 ||
+        if (productDetails.inventory == null || productDetails.inventory !is Int ||
+            !isValidString(productDetails.name) ||
+            productDetails.type == null ||
             !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
         ) {
+            val errorMessage = "Invalid product details"
+
             val errorResponse = ErrorResponseBody(
                 timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status = HttpStatus.BAD_REQUEST.value(),
-                error = "Invalid product details",
+                error = errorMessage,
                 path = "/products"
             )
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
         }
 
-        val newId = (products.keys.maxOrNull() ?: 0) + 1
+        val newId = products.keys.max() + 1
         val newProduct = Product(
             id = newId,
             name = productDetails.name,
-            type = productDetails.type,
+            type = ProductType.valueOf(productDetails.type),
             inventory = productDetails.inventory
         )
         products[newId] = newProduct
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ProductId(newId))
+    }
+
+    private fun isValidString(value: String?): Boolean {
+        return value != null && value.matches(Regex("^[a-zA-Z\\s]+$")) && value !in listOf("true", "false")
     }
 }
