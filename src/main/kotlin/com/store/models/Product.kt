@@ -3,30 +3,31 @@ package com.store.models
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class ProductDetails @JsonCreator constructor(
-    @JsonProperty("name") val name: String,
-    @JsonProperty("type") val type: ProductType,
-    @JsonProperty("inventory") val inventory: Int
-)
-
-data class ProductId(
-    val id: Long
-)
-
-data class Product(
-    val id: Long,
-    val name: String,
-    val type: ProductType,
-    val inventory: Int
-)
 
 enum class ProductType {
     book, food, gadget, other
 }
 
-data class ErrorResponseBody(
-    val timestamp: String,
-    val status: Int,
-    val error: String,
-    val path: String
+data class ProductDetails @JsonCreator constructor(
+    @JsonProperty("name") val name: String,
+    @JsonProperty("type") val type: ProductType,
+    @JsonProperty("inventory") val inventory: Int,
+)
+
+data class Product @JsonCreator constructor(
+    @JsonProperty("id") val id: Int,
+    @JsonProperty("name") val name: String,
+    @JsonProperty("type") val type: ProductType,
+    @JsonProperty("inventory") val inventory: Int,
+)
+
+data class ProductId @JsonCreator constructor(
+    @JsonProperty("id") val id: Int
+)
+
+data class ErrorResponseBody @JsonCreator constructor(
+    @JsonProperty("timestamp") val timestamp: String,
+    @JsonProperty("status") val status: Int,
+    @JsonProperty("error") val error: String,
+    @JsonProperty("path") val path: String
 )

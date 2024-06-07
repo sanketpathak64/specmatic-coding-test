@@ -7,31 +7,52 @@ import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
-import org.springframework.web.bind.annotation.RestController
-
-
 @RestController
 @RequestMapping("/products")
-class Products {
-        private val products = mutableMapOf<Long, Product>(
-        1L to Product(1, "XYZ Phone", ProductType.gadget, 2),
-        2L to Product(2, "XYZ Book", ProductType.book, 10),
-        3L to Product(3, "XYZ Food", ProductType.food, 5)
-    )
+class ProductsController {
+    private val products = mutableMapOf<Int, Product>()
 
     @GetMapping
-    fun getProductsByType(@RequestParam(required = false) type: ProductType?): ResponseEntity<List<Product>> {
-        val filteredProducts = if (type != null) {
-            products.values.filter { it.type == type }
-        } else {
-            products.values.toList()
+    fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<Any> {
+        return try {
+            if (type == null) {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ErrorResponseBody(
+                        timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        status = HttpStatus.BAD_REQUEST.value(),
+                        error = "Missing product type",
+                        path = "/products"
+                    )
+                )
+            } else {
+                val productType = ProductType.valueOf(type)
+                val filteredProducts = products.values.filter { it.type == productType }
+                ResponseEntity.ok(filteredProducts)
+            }
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ErrorResponseBody(
+                    timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    error = "Invalid product type",
+                    path = "/products"
+                )
+            )
         }
-        return ResponseEntity.ok(filteredProducts)
     }
 
-     @PostMapping
-    fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<ProductId> {
+    @PostMapping
+    fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
+        if (productDetails.name.isBlank() || productDetails.inventory <= 0) {
+            val errorResponse = ErrorResponseBody(
+                timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                status = HttpStatus.BAD_REQUEST.value(),
+                error = "Invalid product details",
+                path = "/products"
+            )
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+        }
+
         val newId = (products.keys.maxOrNull() ?: 0) + 1
         val newProduct = Product(
             id = newId,
@@ -40,7 +61,7 @@ class Products {
             inventory = productDetails.inventory
         )
         products[newId] = newProduct
+
         return ResponseEntity.status(HttpStatus.CREATED).body(ProductId(newId))
     }
-
 }
