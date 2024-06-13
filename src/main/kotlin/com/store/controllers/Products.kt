@@ -25,17 +25,12 @@ class ProductsController {
     }
 
     @GetMapping
-    fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<List<Product>> {
-        return try {
-            if (type == null) {
-                ok(emptyList<Product>())
-            } else {
-                val productType = ProductType.valueOf(type)
-                val filteredProducts = products.values.filter { it.type == productType }
-                ok(filteredProducts)
-            }
-        } catch (e: IllegalArgumentException) {
-            throw InvalidProductTypeException("Invalid product type")
+    fun getProducts(@RequestParam(required = false) type: ProductType?): ResponseEntity<List<Product>> {
+        return if (type == null) {
+            ok(products.values.toList())
+        } else {
+            val filteredProducts = products.values.filter { it.type == type }
+            ok(filteredProducts)
         }
     }
 
@@ -69,7 +64,7 @@ class ProductsController {
     )
 
     private fun validateProduct(productDetails: ProductDetails) =
-                !isValidString(productDetails.name) ||
+        !isValidString(productDetails.name) ||
                 !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
 
     private fun isValidString(value: String?): Boolean {
@@ -78,7 +73,6 @@ class ProductsController {
                 value.matches(Regex("^[a-zA-Z\\s]+$"))
     }
 }
-
 
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
