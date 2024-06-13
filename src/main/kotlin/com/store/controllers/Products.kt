@@ -3,6 +3,7 @@ package com.store.controllers
 import com.store.models.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseEntity.*
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -24,18 +25,17 @@ class ProductsController {
     }
 
     @GetMapping
-    fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<Any> {
+    fun getProducts(@RequestParam(required = false) type: String?): ResponseEntity<List<Product>> {
         return try {
             if (type == null) {
-                ResponseEntity.ok(emptyList<Any>())
+                ok(emptyList<Product>())
             } else {
                 val productType = ProductType.valueOf(type)
                 val filteredProducts = products.values.filter { it.type == productType }
-                ResponseEntity.ok(filteredProducts)
+                ok(filteredProducts)
             }
         } catch (e: IllegalArgumentException) {
-            val error = "Invalid product type";
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
+            throw InvalidProductTypeException("Invalid product type")
         }
     }
 
@@ -43,12 +43,12 @@ class ProductsController {
     fun createProduct(@Valid @RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
         if (validateProduct(productDetails)) {
             val error = "Invalid product details";
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
+            return status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
         }
 
         val newId = products.keys.max() + 1
         products[newId] = newProduct(newId, productDetails)
-        return ResponseEntity.status(HttpStatus.CREATED).body(ProductId(newId))
+        return status(HttpStatus.CREATED).body(ProductId(newId))
     }
 
     private fun newProduct(newId: Int, productDetails: ProductDetails): Product {
@@ -78,3 +78,8 @@ class ProductsController {
                 value.matches(Regex("^[a-zA-Z\\s]+$"))
     }
 }
+
+
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class InvalidProductTypeException(message: String) : RuntimeException(message)
