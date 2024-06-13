@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
+import javax.validation.constraints.Pattern
 
 
 enum class ProductType {
@@ -12,6 +13,10 @@ enum class ProductType {
 
 data class ProductDetails @JsonCreator constructor(
     @field:NotNull
+    @field:Pattern(
+        regexp = "^(?i)(?!true|false)[a-z\\s]*\$",
+        message = "Name must not be a boolean value"
+    )
     @JsonProperty("name") val name: String,
     @field:NotNull
     @JsonProperty("type") val type: String,

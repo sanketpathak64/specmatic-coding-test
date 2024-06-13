@@ -5,8 +5,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.*
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.validation.Valid
 
 @RestController
@@ -35,16 +33,12 @@ class ProductsController {
     }
 
     @PostMapping
-    fun createProduct(@Valid @RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
-        if (validateProduct(productDetails)) {
-            val error = "Invalid product details";
-            return status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
-        }
-
-        val newId = products.keys.max() + 1
+    fun createProduct(@Valid @RequestBody productDetails: ProductDetails): ResponseEntity<ProductId> {
+        val newId = (products.keys.maxOrNull() ?: 0) + 1
         products[newId] = newProduct(newId, productDetails)
         return status(HttpStatus.CREATED).body(ProductId(newId))
     }
+
 
     private fun newProduct(newId: Int, productDetails: ProductDetails): Product {
         return Product(
@@ -55,25 +49,4 @@ class ProductsController {
             cost = productDetails.cost!!
         )
     }
-
-    private fun returnBadRequest(error: String) = ErrorResponseBody(
-        timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-        status = HttpStatus.BAD_REQUEST.value(),
-        error = error,
-        path = "/products"
-    )
-
-    private fun validateProduct(productDetails: ProductDetails) =
-        !isValidString(productDetails.name) ||
-                !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
-
-    private fun isValidString(value: String?): Boolean {
-        return value != null &&
-                value !in listOf("true", "false") &&
-                value.matches(Regex("^[a-zA-Z\\s]+$"))
-    }
 }
-
-
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-class InvalidProductTypeException(message: String) : RuntimeException(message)
