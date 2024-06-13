@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("/products")
@@ -39,7 +40,7 @@ class ProductsController {
     }
 
     @PostMapping
-    fun createProduct(@RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
+    fun createProduct(@Valid @RequestBody productDetails: ProductDetails): ResponseEntity<Any> {
         if (validateProduct(productDetails)) {
             val error = "Invalid product details";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(returnBadRequest(error))
@@ -55,7 +56,7 @@ class ProductsController {
             id = newId,
             name = productDetails.name,
             type = ProductType.valueOf(productDetails.type),
-            inventory = productDetails.inventory!!,
+            inventory = productDetails.inventory,
             cost = productDetails.cost!!
         )
     }
@@ -68,9 +69,7 @@ class ProductsController {
     )
 
     private fun validateProduct(productDetails: ProductDetails) =
-        productDetails.inventory == null || productDetails.cost == null ||
                 !isValidString(productDetails.name) ||
-                productDetails.type == null ||
                 !enumValues<ProductType>().any { it.name.equals(productDetails.type) }
 
     private fun isValidString(value: String?): Boolean {
