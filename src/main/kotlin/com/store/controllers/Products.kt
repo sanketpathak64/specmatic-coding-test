@@ -44,7 +44,7 @@ class ProductsController {
         return Product(
             id = newId,
             name = productDetails.name,
-            type = ProductType.valueOf(productDetails.type),
+            type = productDetails.type,
             inventory = productDetails.inventory,
             cost = productDetails.cost!!
         )

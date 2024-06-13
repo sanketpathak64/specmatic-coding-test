@@ -19,7 +19,7 @@ data class ProductDetails @JsonCreator constructor(
     )
     @JsonProperty("name") val name: String,
     @field:NotNull
-    @JsonProperty("type") val type: String,
+    @JsonProperty("type") val type: ProductType,
     @field:NotNull
     @field:Min(value = 1, message = "Inventory must be at least 1")
     @JsonProperty("inventory") val inventory: Int,
